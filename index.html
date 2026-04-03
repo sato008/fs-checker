@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- アイコン -->
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FS予約">
+<meta name="theme-color" content="#f0eaff">
+
 <title>FantasySprings 予約チェッカー</title>
 
 <style>
@@ -86,104 +95,154 @@ input[type="date"].fs-input:focus, select.fs-select:focus { border-color: #b080e
 </head>
 
 <body>
+  <div class="fs-wrap">
+    <div class="star-bg" id="starBg"></div>
+    <div class="fs-header">
+      <span class="fs-castle-icon">🏰</span>
+      <h1 class="fs-title">FantasySprings Hotel<br>予約チェッカー</h1>
+      <div class="fs-divider"></div>
+      <p class="fs-subtitle">✦ ファンタジースプリングスホテル専用 ✦</p>
+    </div>
 
-<div class="fs-wrap">
-  <div class="star-bg" id="starBg"></div>
-  <div class="fs-header">
-    <span class="fs-castle-icon">🏰</span>
-    <h1 class="fs-title">FantasySprings Hotel<br>予約チェッカー</h1>
-    <div class="fs-divider"></div>
-    <p class="fs-subtitle">✦ 魔法の国への扉をひらく ✦</p>
-  </div>
-
+  <!-- 日付 -->
   <div class="fs-card">
-    <div class="fs-card-title"><div class="fs-card-icon">📅</div>チェックイン日を選ぶ</div>
-    <label class="fs-label">ご希望の日付</label>
+    <div class="fs-card-title">📅 チェックイン日</div>
     <input type="date" class="fs-input" id="checkDate" />
     <div class="date-display" id="dateDisplay">日付を選んでください</div>
   </div>
 
+  <!-- 人数 -->
   <div class="fs-card">
-    <div class="fs-card-title"><div class="fs-card-icon">👥</div>人数を選ぶ</div>
-    <div class="fs-num-row">
-      <div class="fs-num-group">
-        <label>大人の人数</label>
-        <div class="fs-counter">
-          <button class="fs-counter-btn" onclick="changeNum('adult',-1)">−</button>
-          <span class="fs-counter-val" id="adultVal">2</span>
-          <button class="fs-counter-btn" onclick="changeNum('adult',1)">＋</button>
-        </div>
-      </div>
-      <div class="fs-num-group">
-        <label>子どもの人数</label>
-        <div class="fs-counter">
-          <button class="fs-counter-btn" onclick="changeNum('child',-1)">−</button>
-          <span class="fs-counter-val" id="childVal">0</span>
-          <button class="fs-counter-btn" onclick="changeNum('child',1)">＋</button>
-        </div>
+    <div class="fs-card-title">👥 人数</div>
+
+    <div class="fs-num-group">
+      <label>大人の人数</label>
+      <div class="fs-counter">
+        <button class="fs-counter-btn" onclick="changeNum('adult',-1)">−</button>
+        <span class="fs-counter-val" id="adultVal">2</span>
+        <button class="fs-counter-btn" onclick="changeNum('adult',1)">＋</button>
       </div>
     </div>
+    <div class="fs-num-group">
+      <label>子どもの人数</label>
+      <div class="fs-counter">
+        <button class="fs-counter-btn" onclick="changeNum('child',-1)">−</button>
+        <span class="fs-counter-val" id="childVal">0</span>
+        <button class="fs-counter-btn" onclick="changeNum('child',1)">＋</button>
+      </div>
+    </div>
+
+    <!-- ★追加：保存チェック -->
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:#8060a8;">
+      <input type="checkbox" id="saveToggle">
+      入力内容を保存する
+    </label>
   </div>
 
+  <!-- ボタン -->
   <div class="fs-card">
     <div class="fs-card-title"><div class="fs-card-icon">🔍</div>空室・空席を探す</div>
     <div class="fs-btn-row">
       <button class="fs-btn fs-btn-hotel" onclick="openLink('hotel')">🏨 ホテルの空室を探す</button>
       <button class="fs-btn fs-btn-restaurant" onclick="openLink('restaurant')">🍽️ 朝食レストランの空席を探す</button>
-      <button class="fs-btn fs-btn-both" onclick="openBoth()">✨ 両方まとめて開く</button>
     </div>
     <div class="fs-alert" id="fsAlert">日付を選んでください</div>
     <p class="fs-note">ボタンを押すと東京ディズニーリゾート<br>公式予約サイトが開きます</p>
   </div>
 </div>
 
-
 <script>
+let adultNum=2, childNum=0;
+let isSaveEnabled=false;
+
+// ⭐ 日付表示
+function updateDateDisplay(v){
+  const [y,m,d]=v.split('-');
+  const wd=['日','月','火','水','木','金','土'][new Date(+y,+m-1,+d).getDay()];
+  document.getElementById('dateDisplay').textContent =
+    y+'年'+m+'月'+d+'日（'+wd+'）';
+}
+
+// ⭐ 初期化
 (function(){
-  const bg = document.getElementById('starBg');
-  for(let i=0;i<18;i++){
-    const s=document.createElement('div'); s.className='star';
-    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%';
-    s.style.animationDelay=Math.random()*3+'s';
-    s.style.width=s.style.height=(2+Math.random()*4)+'px';
-    bg.appendChild(s);
-  }
   const today=new Date();
-  const yyyy=today.getFullYear(), mm=String(today.getMonth()+1).padStart(2,'0'), dd=String(today.getDate()+1).padStart(2,'0');
-  document.getElementById('checkDate').min=yyyy+'-'+mm+'-'+dd;
+  today.setDate(today.getDate()+1);
+
+  const yyyy=today.getFullYear();
+  const mm=String(today.getMonth()+1).padStart(2,'0');
+  const dd=String(today.getDate()).padStart(2,'0');
+
+  const dateInput=document.getElementById('checkDate');
+
+  const savedFlag = localStorage.getItem('fs_save');
+  const savedDate = localStorage.getItem('fs_date');
+  const savedAdult = localStorage.getItem('fs_adult');
+  const savedChild = localStorage.getItem('fs_child');
+
+  if(savedFlag === 'true'){
+    isSaveEnabled = true;
+    document.getElementById('saveToggle').checked = true;
+
+    if(savedDate) dateInput.value = savedDate;
+    if(savedAdult) adultNum = parseInt(savedAdult);
+    if(savedChild) childNum = parseInt(savedChild);
+  } else {
+    dateInput.value = yyyy+'-'+mm+'-'+dd;
+  }
+
+  document.getElementById('adultVal').textContent = adultNum;
+  document.getElementById('childVal').textContent = childNum;
+
+  updateDateDisplay(dateInput.value);
 })();
 
-let adultNum=2, childNum=0;
-function changeNum(type,delta){
-  if(type==='adult'){adultNum=Math.max(1,Math.min(8,adultNum+delta));document.getElementById('adultVal').textContent=adultNum;}
-  else{childNum=Math.max(0,Math.min(6,childNum+delta));document.getElementById('childVal').textContent=childNum;}
-}
-document.getElementById('checkDate').addEventListener('change',function(){
-  const v=this.value;
-  if(v){
-    const [y,m,d]=v.split('-');
-    const wd=['日','月','火','水','木','金','土'][new Date(+y,+m-1,+d).getDay()];
-    document.getElementById('dateDisplay').textContent=y+'年'+m+'月'+d+'日（'+wd+'）';
-    document.getElementById('fsAlert').classList.remove('show');
+// ⭐ チェック切替
+document.getElementById('saveToggle').addEventListener('change', function(){
+  isSaveEnabled = this.checked;
+  localStorage.setItem('fs_save', isSaveEnabled);
+
+  if(!isSaveEnabled){
+    localStorage.removeItem('fs_date');
+    localStorage.removeItem('fs_adult');
+    localStorage.removeItem('fs_child');
   }
 });
-function getDateStr(){const v=document.getElementById('checkDate').value;return v?v.replace(/-/g,''):null;}
+
+// ⭐ 人数変更
+function changeNum(type,delta){
+  if(type==='adult'){
+    adultNum=Math.max(1,Math.min(8,adultNum+delta));
+    document.getElementById('adultVal').textContent=adultNum;
+    if(isSaveEnabled) localStorage.setItem('fs_adult', adultNum);
+  } else {
+    childNum=Math.max(0,Math.min(6,childNum+delta));
+    document.getElementById('childVal').textContent=childNum;
+    if(isSaveEnabled) localStorage.setItem('fs_child', childNum);
+  }
+}
+
+// ⭐ 日付変更
+document.getElementById('checkDate').addEventListener('change',function(){
+  const v=this.value;
+  updateDateDisplay(v);
+  if(isSaveEnabled) localStorage.setItem('fs_date', v);
+});
+
+// ⭐ 遷移
 function openLink(type){
-  const d=getDateStr();
-  if(!d){document.getElementById('fsAlert').classList.add('show');return;}
+  const v=document.getElementById('checkDate').value;
+  if(!v) return;
+
+  const d=v.replace(/-/g,'');
+
   let url;
   if(type==='hotel'){
-    url='https://reserve.tokyodisneyresort.jp/hotel/list/?showWay=&roomsNum=1&adultNum='+adultNum+'&childNum='+childNum+'&stayingDays=1&useDate='+d+'&cpListStr=&childAgeBedInform=&searchHotelCD=FSH&searchHotelDiv=&hotelName=&searchHotelName=&searchLayer=&searchRoomName=&hotelSearchDetail=true&checkPointStr=&displayType=data-hotel&reservationStatus=1';
+    url='https://reserve.tokyodisneyresort.jp/hotel/list/?adultNum='+adultNum+'&childNum='+childNum+'&useDate='+d;
   } else {
-    url='https://reserve.tokyodisneyresort.jp/restaurant/search/?useDate='+d+'&mealDivList%5B0%5D=1&adultNum='+adultNum+'&childNum='+childNum+'&childAgeInform=&restaurantType%5B2%5D=8&nameCd=RFSR0&wheelchairCount=0&stretcherCount=0&keyword=&reservationStatus=1';
+    url='https://reserve.tokyodisneyresort.jp/restaurant/search/?useDate='+d+'&adultNum='+adultNum+'&childNum='+childNum;
   }
-  window.open(url,'_blank');
-}
-function openBoth(){
-  const d=getDateStr();
-  if(!d){document.getElementById('fsAlert').classList.add('show');return;}
-  openLink('hotel');
-  setTimeout(()=>openLink('restaurant'),300);
+
+  window.location.href=url;
 }
 </script>
 
