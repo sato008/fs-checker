@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FantasySprings 予約チェッカー</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.fs-wrap {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  background: linear-gradient(160deg, #f0eaff 0%, #fce8f3 40%, #e8f0ff 100%);
+  min-height: 100vh;
+  padding: 2rem 1rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.fs-wrap::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,160,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.fs-wrap::after {
+  content: '';
+  position: absolute; bottom: -80px; left: -40px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,180,220,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.star-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+.star {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(160,100,220,0.35);
+  animation: twinkle 3s infinite ease-in-out;
+}
+@keyframes twinkle { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:0.9;transform:scale(1.5)} }
+.fs-header { text-align: center; margin-bottom: 2rem; position: relative; }
+.fs-castle-icon { font-size: 48px; display: block; margin-bottom: 0.5rem; }
+.fs-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: #6a3fa0; letter-spacing: 0.05em; line-height: 1.3; }
+.fs-subtitle { font-size: 13px; color: #9070b8; margin-top: 6px; letter-spacing: 0.1em; }
+.fs-divider { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, #c0a0e0, transparent); margin: 12px auto; }
+.fs-card {
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(200,160,240,0.35);
+  padding: 1.5rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 24px rgba(160,100,220,0.08);
+}
+.fs-card-title { font-size: 15px; font-weight: 700; color: #6a3fa0; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+.fs-card-icon { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #d4aaff, #ffb3d9); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+label.fs-label { display: block; font-size: 13px; color: #8060a8; margin-bottom: 6px; font-weight: 400; }
+input[type="date"].fs-input, select.fs-select {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid rgba(190,150,230,0.45);
+  background: rgba(255,255,255,0.9);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 16px; color: #4a2a7a;
+  appearance: none; -webkit-appearance: none; outline: none;
+  transition: border-color 0.2s; cursor: pointer;
+}
+input[type="date"].fs-input:focus, select.fs-select:focus { border-color: #b080e8; box-shadow: 0 0 0 3px rgba(180,120,240,0.12); }
+.fs-num-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fs-num-group label { display: block; font-size: 13px; color: #8060a8; margin-bottom: 6px; }
+.fs-counter { display: flex; align-items: center; background: rgba(255,255,255,0.9); border: 1.5px solid rgba(190,150,230,0.45); border-radius: 12px; overflow: hidden; }
+.fs-counter-btn { width: 44px; height: 48px; border: none; background: transparent; font-size: 20px; color: #9060c8; cursor: pointer; transition: background 0.15s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.fs-counter-btn:hover { background: rgba(200,160,240,0.15); }
+.fs-counter-btn:active { background: rgba(200,160,240,0.3); }
+.fs-counter-val { flex: 1; text-align: center; font-size: 20px; font-weight: 700; color: #6a3fa0; }
+.fs-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; }
+.fs-btn-hotel { background: linear-gradient(135deg, #b070e8, #7050c8); color: white; box-shadow: 0 4px 20px rgba(150,80,230,0.3); }
+.fs-btn-restaurant { background: linear-gradient(135deg, #f080c8, #c050a0); color: white; box-shadow: 0 4px 20px rgba(200,80,160,0.3); }
+.fs-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.fs-btn:active { transform: translateY(0) scale(0.98); }
+.fs-btn-row { display: flex; flex-direction: column; gap: 10px; }
+.fs-btn-both { background: linear-gradient(135deg, #9060d0, #e070b8); color: white; box-shadow: 0 4px 20px rgba(180,80,200,0.3); font-size: 15px; }
+.fs-alert { display: none; background: rgba(255,220,240,0.8); border: 1px solid rgba(220,100,160,0.3); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #a03070; margin-top: 12px; text-align: center; }
+.fs-alert.show { display: block; }
+.fs-note { font-size: 12px; color: #a090c0; text-align: center; margin-top: 0.8rem; line-height: 1.6; }
+.date-display { font-size: 14px; color: #7050a8; text-align: center; margin-top: 8px; font-weight: 700; }
+</style>
+</head>
+
+<body>
+
+<div class="fs-wrap">
+  <div class="star-bg" id="starBg"></div>
+  <div class="fs-header">
+    <span class="fs-castle-icon">🏰</span>
+    <h1 class="fs-title">FantasySprings Hotel<br>予約チェッカー</h1>
+    <div class="fs-divider"></div>
+    <p class="fs-subtitle">✦ 魔法の国への扉をひらく ✦</p>
+  </div>
+
+  <div class="fs-card">
+    <div class="fs-card-title"><div class="fs-card-icon">📅</div>チェックイン日を選ぶ</div>
+    <label class="fs-label">ご希望の日付</label>
+    <input type="date" class="fs-input" id="checkDate" />
+    <div class="date-display" id="dateDisplay">日付を選んでください</div>
+  </div>
+
+  <div class="fs-card">
+    <div class="fs-card-title"><div class="fs-card-icon">👥</div>人数を選ぶ</div>
+    <div class="fs-num-row">
+      <div class="fs-num-group">
+        <label>大人の人数</label>
+        <div class="fs-counter">
+          <button class="fs-counter-btn" onclick="changeNum('adult',-1)">−</button>
+          <span class="fs-counter-val" id="adultVal">2</span>
+          <button class="fs-counter-btn" onclick="changeNum('adult',1)">＋</button>
+        </div>
+      </div>
+      <div class="fs-num-group">
+        <label>子どもの人数</label>
+        <div class="fs-counter">
+          <button class="fs-counter-btn" onclick="changeNum('child',-1)">−</button>
+          <span class="fs-counter-val" id="childVal">0</span>
+          <button class="fs-counter-btn" onclick="changeNum('child',1)">＋</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fs-card">
+    <div class="fs-card-title"><div class="fs-card-icon">🔍</div>空室・空席を探す</div>
+    <div class="fs-btn-row">
+      <button class="fs-btn fs-btn-hotel" onclick="openLink('hotel')">🏨 ホテルの空室を探す</button>
+      <button class="fs-btn fs-btn-restaurant" onclick="openLink('restaurant')">🍽️ 朝食レストランの空席を探す</button>
+      <button class="fs-btn fs-btn-both" onclick="openBoth()">✨ 両方まとめて開く</button>
+    </div>
+    <div class="fs-alert" id="fsAlert">日付を選んでください</div>
+    <p class="fs-note">ボタンを押すと東京ディズニーリゾート<br>公式予約サイトが開きます</p>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const bg = document.getElementById('starBg');
+  for(let i=0;i<18;i++){
+    const s=document.createElement('div'); s.className='star';
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=Math.random()*3+'s';
+    s.style.width=s.style.height=(2+Math.random()*4)+'px';
+    bg.appendChild(s);
+  }
+  const today=new Date();
+  const yyyy=today.getFullYear(), mm=String(today.getMonth()+1).padStart(2,'0'), dd=String(today.getDate()+1).padStart(2,'0');
+  document.getElementById('checkDate').min=yyyy+'-'+mm+'-'+dd;
+})();
+
+let adultNum=2, childNum=0;
+function changeNum(type,delta){
+  if(type==='adult'){adultNum=Math.max(1,Math.min(8,adultNum+delta));document.getElementById('adultVal').textContent=adultNum;}
+  else{childNum=Math.max(0,Math.min(6,childNum+delta));document.getElementById('childVal').textContent=childNum;}
+}
+document.getElementById('checkDate').addEventListener('change',function(){
+  const v=this.value;
+  if(v){
+    const [y,m,d]=v.split('-');
+    const wd=['日','月','火','水','木','金','土'][new Date(+y,+m-1,+d).getDay()];
+    document.getElementById('dateDisplay').textContent=y+'年'+m+'月'+d+'日（'+wd+'）';
+    document.getElementById('fsAlert').classList.remove('show');
+  }
+});
+function getDateStr(){const v=document.getElementById('checkDate').value;return v?v.replace(/-/g,''):null;}
+function openLink(type){
+  const d=getDateStr();
+  if(!d){document.getElementById('fsAlert').classList.add('show');return;}
+  let url;
+  if(type==='hotel'){
+    url='https://reserve.tokyodisneyresort.jp/hotel/list/?showWay=&roomsNum=1&adultNum='+adultNum+'&childNum='+childNum+'&stayingDays=1&useDate='+d+'&cpListStr=&childAgeBedInform=&searchHotelCD=FSH&searchHotelDiv=&hotelName=&searchHotelName=&searchLayer=&searchRoomName=&hotelSearchDetail=true&checkPointStr=&displayType=data-hotel&reservationStatus=1';
+  } else {
+    url='https://reserve.tokyodisneyresort.jp/restaurant/search/?useDate='+d+'&mealDivList%5B0%5D=1&adultNum='+adultNum+'&childNum='+childNum+'&childAgeInform=&restaurantType%5B2%5D=8&nameCd=RFSR0&wheelchairCount=0&stretcherCount=0&keyword=&reservationStatus=1';
+  }
+  window.open(url,'_blank');
+}
+function openBoth(){
+  const d=getDateStr();
+  if(!d){document.getElementById('fsAlert').classList.add('show');return;}
+  openLink('hotel');
+  setTimeout(()=>openLink('restaurant'),300);
+}
+</script>
+
+</body>
+</html>
